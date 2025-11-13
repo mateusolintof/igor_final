@@ -1,0 +1,2281 @@
+{
+  "name": "IGOR_01_Fluxo_Orquestrador",
+  "nodes": [
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2a9dbe4e-92e9-4d7d-9d5e-277b34c5736e",
+              "name": "message",
+              "value": "={{ $('Normalize Input').item.json.message }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "6f9ab03c-4d1f-4eba-bbc9-72c4520a3ca7",
+      "name": "Edit Fields12",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        1616
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "424c7671-5250-4bf2-aa56-d12759837522",
+              "name": "message",
+              "value": "={{ $item(\"0\").$node[\"Transcreve Áudio\"].json[\"text\"] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "64e5350a-ab99-4088-a862-6bcc34b4a86a",
+      "name": "Edit Fields14",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        384,
+        1776
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "424c7671-5250-4bf2-aa56-d12759837522",
+              "name": "message",
+              "value": "={{ $json.choices[0].message.content }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "5b2c5faf-214c-49c9-bf83-ab7814f4df98",
+      "name": "Edit Fields16",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        384,
+        1920
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "push",
+        "list": "={{ $('Normalize Input').item.json.lead_id }}",
+        "messageData": "={{ $json.message }}",
+        "tail": true
+      },
+      "id": "fcd46ce3-33c0-4c8c-a1f6-3f3a09287762",
+      "name": "Listar Mensagens",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1008,
+        1808
+      ],
+      "credentials": {
+        "redis": {
+          "id": "Lm1PRFZAUEYFsI5W",
+          "name": "Redis Instituto Aguiar Neri"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "propertyName": "message",
+        "key": "={{ $('Normalize Input').item.json.lead_id }}",
+        "options": {}
+      },
+      "id": "7cd0fc13-7b49-4780-a9ab-4ea69b54589a",
+      "name": "Puxar as Mensagens",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1328,
+        1808
+      ],
+      "credentials": {
+        "redis": {
+          "id": "Lm1PRFZAUEYFsI5W",
+          "name": "Redis Instituto Aguiar Neri"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "5e04a666-10ff-4fd9-90f6-c64c1444c5c9",
+      "name": "Wait",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1168,
+        1808
+      ],
+      "webhookId": "63dc8415-d5b3-442c-b720-94ceb280001a"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "8bb80936-87dc-4fcf-9784-83b69bf74de3",
+              "leftValue": "={{ $json.message.last() }}",
+              "rightValue": "={{ $('Merge1').item.json.message }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "1fd97156-8523-457a-952c-d02764546565",
+      "name": "If",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1488,
+        1808
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "={{ $('Normalize Input').item.json.lead_id }}"
+      },
+      "id": "0f87f918-9e1d-4867-beb0-0f73fbeca0a0",
+      "name": "Deleta Mesagem",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1824,
+        1792
+      ],
+      "credentials": {
+        "redis": {
+          "id": "Lm1PRFZAUEYFsI5W",
+          "name": "Redis Instituto Aguiar Neri"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "transcribe",
+        "binaryPropertyName": "=data",
+        "options": {}
+      },
+      "id": "ba23bc4c-2931-4765-8ae3-9654be03b5e4",
+      "name": "Transcreve Áudio",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.4,
+      "position": [
+        208,
+        1776
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "AvFnQeMq6aXNioVd",
+          "name": "OpenAI Instituto Aguiar Neri"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "text": "Transcrever a imagem, atentando-se ao conteúdo legível e claro referente às informações sobre o Instituto Aguiar Neri abaixo:\n\n\"Você é Alice, assistente virtual especializada do Instituto Dr. Igor, clínica premium de nutrologia em Feira de Santana. Representa o Dr. Igor, nutrólogo com mais de 10 anos de experiência e pós-graduação em Ciências da Obesidade.\n\nREALIDADE DO NEGÓCIO: 80% dos pacientes buscam resultados estéticos (emagrecimento, definição corporal). Apenas 20% têm foco primário em saúde. Adapte sua abordagem para essa realidade.\"",
+        "inputType": "=data",
+        "simplify": false,
+        "options": {}
+      },
+      "id": "fda1acbf-25a7-4824-aa5c-2dc59eb7ab56",
+      "name": "Analisa Imagem",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.4,
+      "position": [
+        208,
+        1920
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "AvFnQeMq6aXNioVd",
+          "name": "OpenAI Instituto Aguiar Neri"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Normalize Input').item.json.message }}",
+                    "rightValue": "conversation",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    },
+                    "id": "4765207e-26a9-478c-94a8-2db13b31ef65"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "texto"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "eff21590-3f98-44e7-a61c-69b58659b264",
+                    "leftValue": "={{ $('Normalize Input').item.json.message_attachment_type }}",
+                    "rightValue": "voice",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "audio"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "70387fe0-1775-4220-8d33-31a51169cd39",
+                    "leftValue": "={{ $('Normalize Input').item.json.message_attachment_type }}",
+                    "rightValue": "picture",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "image"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "889aa29a-6bde-4b40-bff1-9359fd868387",
+                    "leftValue": "={{ $('Normalize Input').item.json.message_attachment_type }}",
+                    "rightValue": "file",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "file"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "93b7f091-59af-4b8c-81a5-509c7c595e00",
+      "name": "Switch Type",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -208,
+        1760
+      ]
+    },
+    {
+      "parameters": {
+        "numberInputs": 4
+      },
+      "id": "d0e8a2b7-9cc3-42a1-94df-4805a3806429",
+      "name": "Merge1",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        816,
+        1776
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a8f9df49-3137-42d2-9ac3-dae8a8ea7a26",
+              "name": "mensagem",
+              "value": "={{ $('Puxar as Mensagens').item.json.message.join('\\n') }}",
+              "type": "string"
+            },
+            {
+              "id": "6095fbcd-4c3b-4154-843c-ea6f02053809",
+              "name": "isFluxoPrincipal",
+              "value": true,
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "2573d9c9-2c8d-4ec2-beb5-7f5ed4f9fa8b",
+      "name": "Merge mensagens",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1664,
+        1792
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Normalize Input').item.json.message_attachment_link }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ $('Normalize Input').item.json.authorization }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        32,
+        1776
+      ],
+      "id": "5d8e7fb0-935d-484c-a3a8-8b824d4ac8ea",
+      "name": "Obter base64 para audio",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Normalize Input').item.json.message_attachment_link }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ $('Normalize Input').item.json.authorization }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        32,
+        1920
+      ],
+      "id": "d178cd2c-ab1f-49dd-ba14-32c01c27f029",
+      "name": "Obter base64 para imagem",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "={{ $json.link }}/api/v4/leads/{{ $json.lead_id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ $json.authorization }}"
+            },
+            {
+              "name": "accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"custom_fields_values\": [\n    {\n      \"field_id\": {{ $json.ultima_mensagem_id }},\n      \"values\": [\n        {\n          \"value\": \"{{ new Intl.DateTimeFormat('pt-BR').format(new Date($json.created_at * 1000)) }}\"\n        }\n      ]\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1488,
+        1808
+      ],
+      "id": "a0d305f7-4db2-4599-b50e-7cb200cb4012",
+      "name": "Atualizar data ultima mensagem",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -752,
+        1920
+      ],
+      "id": "68f799e4-abc7-465b-8b88-0a02407132c2",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "18f53d54-36a5-4a11-9161-e0bf96b4b36b",
+              "leftValue": "={{ $json.pipeline_id }}",
+              "rightValue": "={{ $('Normalize Input').item.json.pipeline_atendimento_ia }}",
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -944,
+        1808
+      ],
+      "id": "3372309a-054f-430e-b15f-781323414720",
+      "name": "Checar pipeline"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1664,
+        1936
+      ],
+      "id": "9b689134-a515-461e-92b4-f783a08a0c70",
+      "name": "No Operation, do nothing1"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Normalize Input').item.json.link }}/api/v4/leads/pipelines/{{ $('Normalize Input').item.json.pipeline_atendimento_ia }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ $('Normalize Input').item.json.authorization }}"
+            },
+            {
+              "name": "accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -576,
+        1792
+      ],
+      "id": "256d6eca-bc44-41d4-8c68-739eb66f3837",
+      "name": "Status da pipeline",
+      "alwaysOutputData": false,
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const pipelineInfo = JSON.parse($input.first().json.data);\n\nconst statuses = pipelineInfo[\"_embedded\"][\"statuses\"];\n\nconst statusMap = {};\n\nfor (var i = 1; i < statuses.length; i++) {\n  statusMap[statuses[i].name] = statuses[i].id;\n}\n  \nreturn {\n  json: statusMap\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -384,
+        1792
+      ],
+      "id": "65c3146b-211f-4d15-8352-3e665439afa1",
+      "name": "JSON Status"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Normalize Input').item.json.link }}/api/v4/leads/{{ $('Normalize Input').item.json.lead_id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ $('Normalize Input').item.json.authorization }}"
+            },
+            {
+              "name": "accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1312,
+        1808
+      ],
+      "id": "9f09e276-85f0-48f2-9754-b43037ed0c99",
+      "name": "Obter info",
+      "alwaysOutputData": false,
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "\nreturn JSON.parse($input.first().json.data);"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1136,
+        1808
+      ],
+      "id": "e2a4e234-2da1-4526-9d4e-8a8c3ad468e9",
+      "name": "Lead info"
+    },
+    {
+      "parameters": {
+        "workflowId": "UyS6h1FsK6iU1iM7",
+        "options": {}
+      },
+      "id": "88af3926-bfc9-4eb3-9e0d-861752cb441b",
+      "name": "Exec → Acolhimento",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        3632,
+        1424
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "TEMNDEW6ooG5StTM",
+        "options": {}
+      },
+      "id": "2bb7a842-c5ec-4f12-b355-8284dd5ca686",
+      "name": "Exec → Qualificação",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        3632,
+        1712
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "KeDNkDHKUwZ8R1TV",
+        "options": {}
+      },
+      "id": "de729ec6-3c98-4d12-87a9-42e64b65cda1",
+      "name": "Exec → Objeções/Valor",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        3632,
+        1872
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "tQvBwTLA8du5JY2b",
+        "options": {}
+      },
+      "id": "fdbdd97c-a23a-4dbb-b7c3-3f177295686a",
+      "name": "Exec → Nutrição",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        3632,
+        2208
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "wa/orchestrator",
+        "options": {}
+      },
+      "id": "f86a64f3-2e9d-42c3-aa64-7645790dd1b6",
+      "name": "Webhook1",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -1856,
+        1808
+      ],
+      "webhookId": "da8eadca-6a17-46df-99fa-6b506f9ee4c5"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Normalize inbound WhatsApp payload shape into a standard object.\n// Expecting something like: { body: { message: \"...\", lead_id: \"...\", state: {...} } }\nconst body = $json.body || $json || {};\nconst subdomain = body['account[subdomain]'];\nconst account_id = body['account[id]'];\nconst contact_id = body['message[add][0][contact_id]'];\nconst message = body['message[add][0][text]'];\nconst lead_id = body['message[add][0][element_id]'];\nconst lead_type = body['message[add][0][element_type]'];\nconst link = `https://${subdomain}.kommo.com`;\nconst respostaIA = 887722;\nconst sales_bot_id_enviar_mensagem = 61530;\nconst ultima_mensagem_id = 887750;\nconst pipeline_atendimento_ia = 12389659;\nconst pipeline_atendimento_humano = 12389683;\nconst authorization = 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6ImJiMTVkOTFlZWI3ODc3NWEwNDRmNjRjZDdiYmM2YWE2NTA0OTk3ZWU0M2ZlOTVhZGU3OTc5ZGQ0YzU4ZDUxNjY1MjM0OWY1ZTg5MjM1NmQzIn0.eyJhdWQiOiI5MDIyMGQ3NS01YTBiLTRiYjAtOGIxOS0xNmU3MDM2MjE4YzgiLCJqdGkiOiJiYjE1ZDkxZWViNzg3NzVhMDQ0ZjY0Y2Q3YmJjNmFhNjUwNDk5N2VlNDNmZTk1YWRlNzk3OWRkNGM1OGQ1MTY2NTIzNDlmNWU4OTIzNTZkMyIsImlhdCI6MTc1NzI3NzA2MywibmJmIjoxNzU3Mjc3MDYzLCJleHAiOjE4MzAyMTEyMDAsInN1YiI6IjEyNjk0NTExIiwiZ3JhbnRfdHlwZSI6IiIsImFjY291bnRfaWQiOjM0MTUzMTIzLCJiYXNlX2RvbWFpbiI6ImtvbW1vLmNvbSIsInZlcnNpb24iOjIsInNjb3BlcyI6WyJjcm0iLCJmaWxlcyIsImZpbGVzX2RlbGV0ZSIsIm5vdGlmaWNhdGlvbnMiLCJwdXNoX25vdGlmaWNhdGlvbnMiXSwidXNlcl9mbGFncyI6MCwiaGFzaF91dWlkIjoiNzc3ZTRjOTktNzFhMi00MTVlLWJmY2MtNmRjZTFmZjZmZjU1IiwiYXBpX2RvbWFpbiI6ImFwaS1jLmtvbW1vLmNvbSJ9.kF7xYsg9rHwsMOSKm8cmbkUtBiwBAg2GTFJ2qtJQfW1c3edQs8TM77K-AtH8TJisAkbxeAZAvgaQY9Ula7Fj8_exCZ0GQgod6XmBP_jG-rY3q-k9vq4yAylw90a8hxCGkVBuXHQkoIeEujxN9Z9jZCDJosZkoY_YdsKrUd87UYempxZBxUz-OLmrm4jrqSD7eEBthLN8kvSB-xH2jGsMZPDjTD0DQbsGT2aD-80P2CJ3clfTgj0uVuWwc6A19cuizgT9AbPoGumidKT-VyddMXLM7tQj4J9CaKer3HMJNx1RzxaqLgdbgZnzCnQHMgr_QHNODCpDnpyPYxl9lftJow';\nconst created_at = body['message[add][0][created_at]'];\nconst message_attachment_type = body['message[add][0][attachment][type]'];\nconst message_attachment_link = body['message[add][0][attachment][link]'];\n  \nreturn [{\n  json: {\n    subdomain,\n    account_id,\n    contact_id,\n    message,\n    lead_id,\n    lead_type,\n    link,\n    respostaIA,\n    sales_bot_id_enviar_mensagem,\n    ultima_mensagem_id,\n    pipeline_atendimento_ia,\n    pipeline_atendimento_humano,\n    message_attachment_type,\n    message_attachment_link,\n    created_at,\n    authorization    \n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1680,
+        1808
+      ],
+      "id": "4e9db143-8a11-46d7-bbf9-987b626ea5fb",
+      "name": "Normalize Input"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Route to the correct Execute Workflow via multiple outputs\n\nconst result = (() => {\n  return { \n    ...$input.first().json.output,\n    status_id: $('Lead info').first().json.status_id,\n    default_prompt: $('Default prompt').first().json.system_prompt,\n    ...$('Normalize Input').first().json,\n    ...$('JSON Status').first().json\n  };\n})() \n\nreturn result;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3024,
+        1808
+      ],
+      "id": "894f4c4f-d1f3-44b7-aa21-b00dbf04b9c0",
+      "name": "Demux p/ Exec Agents"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"$schema\": \"https://json-schema.org/draft/2020-12/schema\",\n  \"$id\": \"https://example.com/schemas/agent-update.json\",\n  \"title\": \"Agente e Atualizações\",\n  \"type\": \"object\",\n  \"additionalProperties\": false,\n  \"properties\": {\n    \"next_agent\": { \"type\": \"string\", \"minLength\": 1 },\n    \"rationale\":   { \"type\": \"string\", \"minLength\": 1 },\n    \"updates\": {\n      \"type\": \"array\",\n      \"minItems\": 0,\n      \"items\": {\n        \"type\": \"object\",\n        \"additionalProperties\": false,\n        \"properties\": {\n          \"field\": { \"type\": \"string\", \"minLength\": 1 },\n          \"value\": { \"type\": \"string\", \"minLength\": 1 },\n          \"tool\":  { \"type\": \"string\", \"minLength\": 1 }\n        },\n        \"required\": [\"field\", \"value\", \"tool\"]\n      }\n    }\n  },\n  \"required\": [\"next_agent\", \"rationale\"]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        2896,
+        2256
+      ],
+      "id": "3fa69943-831b-4952-8833-b9ad656baff8",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1"
+        },
+        "options": {
+          "maxTokens": 500,
+          "responseFormat": "json_object",
+          "temperature": 0,
+          "topP": 0.1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        2752,
+        1952
+      ],
+      "id": "7bba5451-a3bb-4cba-8136-6784a9b3a460",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "AvFnQeMq6aXNioVd",
+          "name": "OpenAI Instituto Aguiar Neri"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "56f0a0b1-b038-4f41-8b1c-781f2f8520fb",
+                    "leftValue": "={{ $json.next_agent }}",
+                    "rightValue": "Aguardando agendamento",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Aguardando agendamento"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.next_agent }}",
+                    "rightValue": "Acolhimento",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "d63df195-1592-4625-96ab-a3d357703676"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Acolhimento"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "22027be1-0f58-49fc-86e3-b22646957a95",
+                    "leftValue": "={{ $json.next_agent }}",
+                    "rightValue": "Localização",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Localização"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "edee3107-6bae-48dc-b2de-cc2f5977b059",
+                    "leftValue": "={{ $json.next_agent }}",
+                    "rightValue": "Qualificação",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Qualificação"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "6341711f-263f-41cd-b147-bf781fd183ea",
+                    "leftValue": "={{ $json.next_agent }}",
+                    "rightValue": "Objeções/Valor",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Objeções/Valor"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "713db21a-394b-4911-b5a6-a8e3517b86df",
+                    "leftValue": "={{ $json.next_agent }}",
+                    "rightValue": "Escalação/Compliance",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Escalação/Compliance"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "ec4c740b-77aa-4ffa-b21a-7482bd1f3f40",
+                    "leftValue": "={{ $json.next_agent }}",
+                    "rightValue": "Nutrição",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Nutrição"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "f27a316f-5b9f-457d-a1d1-4b053cebf8fd",
+                    "leftValue": "={{ $json.next_agent }}",
+                    "rightValue": "Atualização de campos",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Atualização de campos"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        3200,
+        1712
+      ],
+      "id": "65873316-4613-4570-87d6-7975aeb15ac4",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "amount": 2
+      },
+      "id": "5d141594-b1bd-43dc-8b50-13477cd17c14",
+      "name": "Wait6",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        5136,
+        1936
+      ],
+      "webhookId": "90bf0bfe-c3cd-4a4f-844b-2f0e7502bbc6"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        4784,
+        1680
+      ],
+      "id": "57a7c207-c466-46a3-8186-1c9612cef39b",
+      "name": "No Operation, do nothing3"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.mensagem }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=# Orquestrador de Leads\n\n## Função\nVocê é o **Orquestrador**.  \nSua função é **decidir qual agente especializado** deve responder à mensagem do lead com base nas informações conhecidas e no conteúdo da mensagem.\n\n## Entradas\nVocê receberá:\n- A mensagem do lead:\n    \"{{ $json.mensagem }}\"\n- O JSON com as informações do lead:\n```json\n    {{ $json.lead_info }}\n```\n\n## Regras de Roteamento (por prioridade e contexto):\n\n{{ $json.prompt_atualizacao }}\n\n2. Acolhimento\n\nCaso o campo `lead_info.name` ainda não tenha nome definido.\n\n→ \"next_agent\": \"Acolhimento\", \"rationale\": \"Faltam dados mínimos de identificação (nome).\"\n\n3. Qualificação\n\nEsse agente será acionado na maioria das vezes, após obter o nome do lead.\nÉ aqui que o diálogo, o aprofundamento de conexão e a apresentação de valor irá acontecer.\nLembre-se que **só deve ser acionada** se as seguintes condições forem verdadeiras:\n\n- O nome do lead **já foi identificado** e está presente em `lead_info.name`.\n- O lead ainda não foi qualificado ou **nenhum** outro agente foi acionado.\n\n→ \"next_agent\": \"Qualificação\", \"rationale\": \"Aprofundamento de conexão, apresentação de valor ou faltam dados de qualificação do lead.\"\n\n4. Aguardando agendamento\n\nProntidão real para marcar (contextualizada). Use as regras abaixo para diferenciar gatilhos inequívocos de ambíguos.\n\nGatilhos inequívocos (sempre = prontidão):\n- “pode marcar”, “vamos agendar”, “aceito, pode marcar”, “qualquer horário serve”,\n- perguntas sobre data concreta: “tem vaga amanhã?”\n\nGatilhos ambíguos (dependem do estado):\n- “quero consultar”, “quero uma consulta”, “quando tem disponibilidade?”\n  - Se `lead_info.qualificado = true` (objetivo claro + sem objeção financeira forte, ou status CRM=QUALIFICADO): tratar como prontidão → Aguardando agendamento.\n  - Caso contrário (primeiras mensagens / sem qualificação): roteie para Acolhimento (se falta nome) ou Qualificação.\n\n5. Objeções/Valor\n\nSe houver objeções de preço, convênio, tempo ou distância.\n\n→ \"next_agent\": \"Objeções/Valor\", \"rationale\": \"Foram identificadas objeções relacionadas a valor, convênio, tempo ou distância.\"\n\n6. Escalação/Compliance\n\nSe houver termos de risco, reclamações, termos médicos ou pedido de humano.\n\n→ \"next_agent\": \"Escalação/Compliance\", \"rationale\": \"Detectados termos de risco, queixa, termos médicos ou solicitação de atendimento humano.\"\n\n7. Nutrição\n\nSe o cliente demonstrar não estar pronto para avançar (ex.: “só pesquisando”, “talvez depois”, “ainda não decidi”).\n\n→ \"next_agent\": \"Nutrição\", \"rationale\": \"Cliente não está pronto para avançar agora.\"\n\n## Formatação da Saída\n\nResponda somente em JSON, neste formato:\n```json\n{\n  \"next_agent\": \"<nome do agente>\",\n  \"rationale\": \"<motivo da decisão>\",\n  \"updates\": [\n    {\n      \"field\": \"<nome_do_campo>\",\n      \"value\": \"<valor extraído>\",\n      \"tool\": \"<tool associada, se aplicável>\"\n    }\n  ]\n}\n```\n- O campo \"updates\" é opcional, presente apenas quando \"next_agent\" for \"Atualização de campos\".\n- Não escreva nenhuma mensagem ao cliente.\n\n## Notas adicionais para o modelo\n\n- Se detectar múltiplos campos respondidos na mesma mensagem, inclua todos em \"updates\".\n- Caso haja conflito entre regras, siga sempre a ordem de prioridade acima.\n- Considere variações linguísticas e sinônimos comuns em português (ex.: “tô em Curitiba” = “moro em Curitiba”).\n- Use bom senso e contexto semântico: se a mensagem for curta e direta, como “sou João”, “de Belo Horizonte”, “quero emagrecer”, provavelmente é uma resposta à pergunta anterior → Atualização de campos.\n- Estilo de saída dos agentes: respostas curtas (1–2 frases, até 3–4 quando realmente necessário), sem formalismos artificiais e sem emojis.\n- O fluxo só deve fazer duas perguntas essenciais em toda a jornada: nome (Acolhimento) e objetivo principal (Qualificação). Evite que agentes perguntem outros itens; informações adicionais devem ser inferidas do que o usuário disser.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        2752,
+        1808
+      ],
+      "id": "b71b81f9-f7d5-455a-9627-10b278cc8d40",
+      "name": "ORCHESTRATOR"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "68c8742a-8cc1-4aff-9313-71390277bf4f",
+              "name": "messages",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "2979b77f-d5d6-4820-b774-75c7597fb679",
+      "name": "Edit Fragmenta",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4064,
+        1808
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e0768b84-d95d-47a0-843e-82b2b74130cf",
+              "name": "messages",
+              "value": "={{ $json.messages.split('\\n\\n') }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "27205390-e83e-4a97-a94e-c01ffcff6875",
+      "name": "Split \\n",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4256,
+        1808
+      ]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "messages",
+        "options": {}
+      },
+      "id": "0a781ad7-2076-4240-9a02-3c8b04250cef",
+      "name": "Split Out",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        4432,
+        1808
+      ]
+    },
+    {
+      "parameters": {
+        "options": {
+          "reset": false
+        }
+      },
+      "id": "a0a20ac1-6910-4f51-818f-bc290897f3d5",
+      "name": "Loop Over Items",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        4608,
+        1808
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "={{ $('Normalize Input').first().json.link }}/api/v4/leads/{{ $('Normalize Input').first().json.lead_id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ $('Normalize Input').first().json.authorization }}"
+            },
+            {
+              "name": "accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"custom_fields_values\": [\n    {\n      \"field_id\": {{ $('Normalize Input').first().json.respostaIA }},\n      \"values\": [\n        {\n          \"value\": \"{{ $json.messages.replaceAll('\\n', '') }}\"\n        }\n      ]\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4784,
+        1936
+      ],
+      "id": "6a9bc796-0ec0-4e73-bc4a-723e6d059199",
+      "name": "Atualizar resposta IA",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Normalize Input').first().json.link }}/api/v2/salesbot/run",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "={{ $('Normalize Input').first().json.authorization }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "=[\n  {\n    \"bot_id\": {{ $('Normalize Input').first().json.sales_bot_id_enviar_mensagem }},\n    \"entity_id\":  {{ $('Normalize Input').first().json.lead_id }},\n    \"entity_type\": \"{{ $('Normalize Input').first().json.lead_type }}\"\n  }\n]",
+        "options": {}
+      },
+      "id": "50de7a9b-494f-4b5c-aaf5-cdbc80ac735d",
+      "name": "Enviar mensagem",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4960,
+        1936
+      ],
+      "retryOnFail": true,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.lead_id }}",
+        "contextWindowLength": 100
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        2800,
+        2032
+      ],
+      "id": "2d770699-2dff-4201-a056-c7e47970aa4e",
+      "name": "Postgres Chat Memory",
+      "credentials": {
+        "postgres": {
+          "id": "rONPTDNEAexjUpqM",
+          "name": "Postgres Instituto Aguiar Neri"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": "vZ1whzq1g1tcjKYe",
+        "options": {}
+      },
+      "id": "046b427a-0901-40c0-a6cb-850733475ebd",
+      "name": "Exec → Aguardando agendamento",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        3632,
+        1264
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": "QsnSWmEYwQLbLhE1",
+        "options": {}
+      },
+      "id": "1cec369e-1418-4b76-80ba-0d3aa08701b1",
+      "name": "Exec → Localização",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        3632,
+        1568
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7512b0e3-0240-4821-8b3b-ac1f4219c644",
+              "name": "system_prompt",
+              "value": "=## IDENTIDADE \n\n### CONTEXTO\n\nVocê é Alice, assistente virtual especializada do Instituto Dr. Igor, uma clínica premium de nutrologia em Feira de Santana.\nVocê representa o Dr. Igor, nutrólogo com mais de 10 anos de experiência e pós-graduação em Ciências da Obesidade.\n\nSeu papel é consultivo e estratégico.\n\n### POSTURA\n\nAtue como vendedora consultiva especializada, conduzindo leads desde o primeiro contato até a qualificação para agendamento, sempre com foco em aumentar a taxa de conversão com uma abordagem empática, personalizada e estratégica.\n\n**REALIDADE DO NEGÓCIO:**\n- A maior parte dos pacientes busca resultados estéticos e de emagrecimento (emagrecimento geral, definição corporal, reposição hormonal, obesidade).\n\nAdapte sua abordagem para essa realidade em todas as conversas.\n\n**VOCÊ É:** Uma consultora especializada focada em gerar percepção de valor.  \n**VOCÊ NÃO É:** Uma simples receptora de pedidos ou atendente passiva.\n\n---\n\n## DIRETRIZES DE COMUNICAÇÃO\n\n### Linguagem e Tom (WhatsApp)\n\n- Lembre-se: você está conversando pelo WhatsApp.  \n- Use frases curtas e naturais, como um humano escreveria.  \n- Use o primeiro nome do paciente de forma pontual, não em todas as mensagens.\n- Use “senhor/senhora” apenas se o próprio paciente demonstrar ser mais formal ou mais velho. Caso contrário, trate-o pelo primeiro nome, de forma respeitosa.\n- Nunca use emojis ou gírias exageradas.\n- Mantenha tom consultivo, empático e direto.  \n- Valide preocupações quando fizer sentido, mas sem textos longos nem frases clichês.\n\nEvite:\n- “para que eu possa…”\n- “é importante que…”\n- “entendo perfeitamente a sua situação…”\n\nPrefira:\n- “pra te orientar melhor…”\n- “o próximo passo é…”\n- “posso te explicar rapidinho como funciona…”\n\n### Concisão com Nuance\n\n**Perguntas de Coleta (1–2 frases):**\n- Faça perguntas objetivas, claras e naturais, sem rodeios.\n\n**Explicações e Contextos (até 2–4 frases):**\n- Use explicações curtas quando o fluxo exigir (por exemplo, antes de falar de valores ou formato da consulta).\n- Evite enviar um “textão” em um único bloco. Se precisar explicar algo mais complexo, quebre em 2 partes lógicas.\n\nLembre-se: conteúdo operacional (detalhes de preço, formatos, endereço, scripts específicos) está nos prompts de cada AGENTE especializado.\n\n### Microturnos, Reperguntas e Respostas Ambíguas\n\n- Se o usuário não respondeu a uma pergunta obrigatória:\n  - Responda primeiro o que ele trouxe.\n  - Em seguida, refaça a pergunta com outra formulação, sem soar robótico.\n  - Exemplo:\n    - Pergunta 1: “Perfeito. Qual é seu objetivo principal agora?”\n    - Pergunta 2: “E voltando rapidinho nessa parte, qual seria seu objetivo principal hoje? O que você busca alcançar com o tratamento?”\n\n- Antes de perguntar algo, verifique se o usuário já não trouxe essa informação espontaneamente em mensagens anteriores.\n\n- Quando a resposta do usuário for vaga ou ambígua (ex.: “pode ser”, “talvez”, “tanto faz”):\n  - Nunca assuma sozinho o significado.\n  - Sempre peça uma breve confirmação, de forma natural.\n  - Exemplo:\n    - “Você quis dizer ‘pode ser’ pra seguirmos pro agendamento ou pra eu te explicar um pouco mais sobre a consulta?”\n\n### Mensagens com Mais de Uma Intenção\n\nSe o usuário trouxer mais de um ponto na mesma mensagem (por exemplo, objetivo + dúvida sobre valor):\n\n- Responda aos dois na mesma resposta, de forma integrada e curta.\n- Primeiro, reconheça o objetivo.\n- Depois, responda sobre valor ou condição, conectando ao objetivo citado.\n\nExemplo de lógica:\n- Usuário: “Quero emagrecer e queria saber o valor da consulta.”\n- Você:\n  - Reconhece o objetivo (“emagrecer”).\n  - Mostra como a consulta ajuda nesse objetivo.\n  - Em seguida, fala do valor de forma clara.\n\n### Variação Linguística\n\n- Varie aberturas:  \n  - “[Nome],”  \n  - “Perfeito,”  \n  - “Entendi,”  \n  - “Claro, posso te explicar.”\n- Evite repetir as mesmas expressões em sequência.\n- Use expressões simples e cotidianas, como uma pessoa real usaria no WhatsApp.\n\n### Informação Just-in-Time\n\n- Não antecipe informações que o usuário não pediu e que não sejam necessárias para o próximo passo.\n- Aguarde o usuário demonstrar interesse ou fazer perguntas específicas.\n- Use informações da clínica (credenciais, diferenciais, detalhes da consulta) apenas quando isso ajudar a:\n  - clarear uma dúvida,\n  - gerar percepção de valor, ou\n  - destravar uma objeção.\n\n### Postura Estratégica\n\n- Seja proativa na condução, mas nunca agressiva.\n- Use perguntas para entender se a pessoa realmente quer seguir para consulta.\n- Identifique oportunidades reais de quebrar objeções, sem discursos longos.\n- Use credenciais e casos de sucesso apenas quando encaixarem naturalmente na conversa ou se o usuário perguntar.\n- Espelhe o nível de formalidade, o vocabulário e o ritmo do usuário.\n\n---\n\n## INFORMAÇÕES DA CLÍNICA\n\n### Serviços e Valores\n\n- **Consulta + Bioimpedância + Retorno (30 dias): R$ 700,00**  \n- **Atendimento EXCLUSIVAMENTE PARTICULAR** (não atendemos convênios).  \n- **Atendimento presencial:** Feira de Santana e Euclides da Cunha.  \n- **Atendimento online:** disponível para pacientes de qualquer cidade.  \n  - Mesmo pacientes de outras cidades podem escolher atendimento presencial, se preferirem.\n- **Bioimpedância:** realizada apenas nas consultas presenciais (exame de composição corporal).\n- **Consultas online:** não têm bioimpedância, mas incluem:\n  - cálculo detalhado de IMC  \n  - avaliação completa e personalizada, com base nas informações do paciente.\n\n### Diferenciais a Destacar (use apenas quando fizer sentido)\n\n- Pós-graduação em Ciências da Obesidade.\n- Abordagem científica, individualizada e baseada em evidências.\n- Foco em resultados sustentáveis, não em soluções rápidas.\n- Casos de sucesso em atendimentos presenciais e online.\n- Acompanhamento com retorno em até 30 dias já incluído no valor.\n\n---\n\n## LEMBRETES IMPORTANTES\n\n1. Foque na realidade estética e nos objetivos do paciente, sem transformar a conversa em consulta médica.\n2. Seja consultiva, não apenas reativa: ajude o paciente a entender se faz sentido seguir para consulta.\n3. Use condicionais e contexto para personalizar cada conversa.\n4. Gere percepção de valor quando fizer sentido para a etapa em que o paciente está.\n5. Lembre-se dos critérios de qualificação definidos nos prompts dos AGENTES (não crie novas regras por conta própria).\n6. Adapte-se ao paciente: se ele estiver inseguro, aproxime; se estiver decidido, simplifique o caminho até o agendamento.\n7. Mantenha linguagem respeitosa, natural e sem formalismos artificiais.\n8. Sempre se pergunte: “Um humano real escreveria isso assim no WhatsApp?” Se a resposta for não, simplifique.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -752,
+        1792
+      ],
+      "id": "ccde16ac-8bac-4c06-b939-851c5c0eeed2",
+      "name": "Default prompt"
+    },
+    {
+      "parameters": {
+        "workflowId": "zaqUj9dXQX3YFyBT",
+        "options": {}
+      },
+      "id": "9fc91e48-0d3f-4409-bae2-5e4aee43593d",
+      "name": "Exec → Atualização de campos",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        3152,
+        2128
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Normalize Input').first().json.link }}/api/v4/leads/{{ $('Normalize Input').first().json.lead_id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ $('Normalize Input').first().json.authorization }}"
+            },
+            {
+              "name": "accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3328,
+        2128
+      ],
+      "id": "1b525a1c-ceff-45bb-b307-f287a59f2148",
+      "name": "Obter info atualizado",
+      "alwaysOutputData": false,
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "return JSON.parse($input.first().json.data);"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3152,
+        2336
+      ],
+      "id": "90b2c0c3-e723-46f6-9c83-6e58a6a8b54a",
+      "name": "Lead info atualizado"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "8999b138-d9d1-4f1c-96c9-226cfdc47ffb",
+              "leftValue": "={{ $('Merge mensagem e fluxo').item.json.isFluxoPrincipal }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2192,
+        1808
+      ],
+      "id": "196717a4-aca2-4e1d-a926-9f3faa8a2c59",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "12705a0a-b46d-48f8-8576-f9a6aada068d",
+              "name": "mensagem",
+              "value": "={{ $json.mensagem }}",
+              "type": "string"
+            },
+            {
+              "id": "e1be5716-3e56-4361-aa24-a61a714140b7",
+              "name": "lead_info",
+              "value": "={{ $('Lead info atualizado').item.toJsonString() }}",
+              "type": "string"
+            },
+            {
+              "id": "01f349c7-98aa-408e-ac1f-49fe844f096e",
+              "name": "prompt_atualizacao",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "b3b1ccdf-8861-4270-9a21-cfe722046d17",
+              "name": "lead_id",
+              "value": "={{ $('Normalize Input').first().json.lead_id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2400,
+        1920
+      ],
+      "id": "b7611e38-ba72-4db1-9946-e00ed52fc877",
+      "name": "Info Atualizada"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "12705a0a-b46d-48f8-8576-f9a6aada068d",
+              "name": "mensagem",
+              "value": "={{ $('Merge mensagens').item.json.mensagem }}",
+              "type": "string"
+            },
+            {
+              "id": "e1be5716-3e56-4361-aa24-a61a714140b7",
+              "name": "lead_info",
+              "value": "={{ $('Lead info').item.toJsonString() }}",
+              "type": "string"
+            },
+            {
+              "id": "9996bb2a-e247-492a-9efb-aa90b1a03c64",
+              "name": "prompt_atualizacao",
+              "value": "=1. 🧾 Atualização de campos  *(com verificação contextual da resposta)*\\\nEsta é a **primeira regra** e tem **prioridade absoluta**.  \nEla só deve ser acionada **se a mensagem atual do lead for, de fato, uma resposta coerente à última pergunta feita pela IA**.\n    1. 🧩 Passos para tomada de decisão\n        - Verifique o campo “Resposta IA” nas informações do lead\n        - Este campo contém a **última mensagem enviada pela IA** ao lead (geralmente uma pergunta).  \n        - Leia o texto e identifique **o que a IA estava pedindo** — por exemplo:\n            - Nome (“Qual é o seu nome?”, “Posso saber seu nome?”)\n            - Cidade (“De qual cidade você fala?”, “Onde você mora?”)\n            - Objetivo (“Qual o seu principal objetivo?”, “O que você deseja alcançar?”)\n            - Capacidade financeira, disponibilidade, canal preferido etc.\n\n    2. **Analise a mensagem do lead**\n        - Determine se a resposta **realmente corresponde** à pergunta feita.  \n        - Compare o conteúdo semântico da pergunta e da resposta.  \n        - Exemplos de correspondência correta:\n            - Pergunta: “Qual é o seu nome?” → Resposta: “Manoel Renan O. Júnior” ✅  \n            - Pergunta: “De qual cidade você fala?” → Resposta: “Sou de Curitiba” ✅  \n            - Pergunta: “Qual o seu objetivo?” → Resposta: “Quero emagrecer” ✅  \n            - Pergunta: “Você tem disponibilidade à tarde?” → Resposta: “Sim, à tarde é melhor pra mim” ✅  \n\n        - Exemplos de **respostas inválidas** (não acionam esta regra):\n            - “Boa tarde!”  \n            - “Tudo bem?”  \n            - “Sim” (sem contexto claro)  \n            - “Quero saber mais” (não responde à pergunta feita)\n\n    3. **Aplique heurísticas complementares**\n        - Mensagens curtas, sem verbos, de 1 a 5 palavras e sem números **podem ser respostas válidas**, mas só se forem coerentes com a pergunta.\n        - Exemplos reconhecidos como respostas diretas válidas:\n            - “me chamo Ana”\n            - “sou de São Paulo”\n            - “quero emagrecer”\n            - “tenho disponibilidade pela manhã”\n        - Exemplos ignorados (sem relação semântica):\n            - “ok”, “aham”, “👍”, “boa”, “sim”, “não”, “legal”\n\n    4. **Defina os campos a atualizar**\n        - Se a resposta corresponder à pergunta, identifique qual campo ela responde.  \n        - Campos possíveis:\n            - `Nome`\n            - `Cidade`\n            - `Objetivo principal`\n            - `Capacidade financeira/Investimento`\n            - `Urgência`\n            - `Tentativas anteriores`\n            - `Perguntou metodo`\n            - `Busca medicação`\n            - `Disponibilidade`\n            - `Canal preferido`\n\n    5. **Gere a saída JSON**\n        - Quando houver correspondência confirmada, retorne no formato:\n\n            ```json\n            {\n                \"next_agent\": \"Atualização de campos\",\n                \"rationale\": \"A mensagem do lead responde de forma coerente à pergunta anterior feita pela IA.\",\n                \"updates\": [\n                    { \"field\": \"<campo_inferido>\", \"value\": \"<valor_extraído>\", \"tool\": \"<tool_associada>\" }\n                ]\n            }\n            ```\n\n        - Exemplo concreto:\n            ```json\n            {\n                \"next_agent\": \"Atualização de campos\",\n                \"rationale\": \"Mensagem contém um nome próprio e responde à pergunta anterior ('Qual é o seu nome?').\",\n                \"updates\": [\n                    { \"field\": \"Nome\", \"value\": \"Henrique\", \"tool\": \"kommo_update_nome\" }\n                ]\n            }\n            ```\n\n    ⚠️ Observações finais\n    - Só aplique esta regra **se houver clara correspondência entre pergunta e resposta**.  \n    - Se a resposta for ambígua, genérica ou fora de contexto, siga para as próximas regras (Acolhimento, Localização etc.).  \n    - Caso mais de um campo seja identificado, inclua todos em `\"updates\"`.  \n    - Esta regra **interrompe a execução das demais** — se for acionada, não avalie as seguintes.\n\n    💡 **Resumo simplificado:**  \n    - Antes de atualizar qualquer campo, o modelo deve **confirmar semanticamente** que o lead respondeu à **pergunta anterior da IA** e **não apenas enviou uma frase solta**.  \n    - Se essa correspondência for clara, envie para “Atualização de campos”.",
+              "type": "string"
+            },
+            {
+              "id": "d9cfdfe8-85ea-4114-97e9-a0addb06dfa4",
+              "name": "lead_id",
+              "value": "={{ $('Normalize Input').item.json.lead_id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2400,
+        1696
+      ],
+      "id": "db3219f5-4982-4155-9ca8-82d9ddbd89e0",
+      "name": "Info"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2592,
+        1808
+      ],
+      "id": "f0323b2b-dec6-4a86-8d63-84983ca92ce8",
+      "name": "Merge"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2016,
+        1808
+      ],
+      "id": "7d310cc0-5b07-4d94-9d63-ad0baa09204f",
+      "name": "Merge mensagem e fluxo"
+    },
+    {
+      "parameters": {
+        "jsCode": "const updates = $('Demux p/ Exec Agents').first().json.updates;\nconst fields = updates.map(m => m.field);\n\nreturn {\n  mensagem: `Campo(s) ${fields.join(',')} atualizado(s)`,\n  isFluxoPrincipal: false,\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3328,
+        2336
+      ],
+      "id": "4d95ffe9-70f7-4f5d-af9c-eb041e58f434",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "workflowId": "IUvqa4J4SfLI3STu",
+        "options": {}
+      },
+      "id": "9084c53e-1150-4aa6-a209-b0378c4c2281",
+      "name": "Exec → Escalação/Compliance",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [
+        3632,
+        2032
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "424c7671-5250-4bf2-aa56-d12759837522",
+              "name": "message",
+              "value": "={{ $json.choices[0].message.content }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "94d04fdc-b964-404e-840d-9bd81fdf15f9",
+      "name": "Edit Fields",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        624,
+        2208
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Normalize Input').item.json.message_attachment_link }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ $('Normalize Input').item.json.authorization }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -128,
+        2208
+      ],
+      "id": "a9c18d2a-b20d-40e5-83d4-6d27676d9d27",
+      "name": "Obter arquivo",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        48,
+        2208
+      ],
+      "id": "c0b5cbbe-e4ae-4b34-9558-aeda445ba302",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1"
+        },
+        "responses": {
+          "values": [
+            {}
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2,
+      "position": [
+        256,
+        2208
+      ],
+      "id": "0d95c428-84bb-403d-9d3b-c761ebeea0b0",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "AvFnQeMq6aXNioVd",
+          "name": "OpenAI Instituto Aguiar Neri"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Apenas Teste",
+        "height": 288,
+        "width": 1040,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -208,
+        2112
+      ],
+      "typeVersion": 1,
+      "id": "363b1e1c-23ad-41e2-ba1c-0fe24a9c9ba5",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Edit Fields12": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields14": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Edit Fields16": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Listar Mensagens": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Puxar as Mensagens": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Puxar as Mensagens",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Merge mensagens",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deleta Mesagem": {
+      "main": [
+        [
+          {
+            "node": "Merge mensagem e fluxo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcreve Áudio": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields14",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analisa Imagem": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields16",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch Type": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields12",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Obter base64 para audio",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Obter base64 para imagem",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Listar Mensagens",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge mensagens": {
+      "main": [
+        [
+          {
+            "node": "Deleta Mesagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obter base64 para audio": {
+      "main": [
+        [
+          {
+            "node": "Transcreve Áudio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obter base64 para imagem": {
+      "main": [
+        [
+          {
+            "node": "Analisa Imagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Atualizar data ultima mensagem": {
+      "main": [
+        [
+          {
+            "node": "Obter info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Checar pipeline": {
+      "main": [
+        [
+          {
+            "node": "Default prompt",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Status da pipeline": {
+      "main": [
+        [
+          {
+            "node": "JSON Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "JSON Status": {
+      "main": [
+        [
+          {
+            "node": "Switch Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obter info": {
+      "main": [
+        [
+          {
+            "node": "Lead info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lead info": {
+      "main": [
+        [
+          {
+            "node": "Checar pipeline",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Exec → Acolhimento": {
+      "main": [
+        [
+          {
+            "node": "Edit Fragmenta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Exec → Qualificação": {
+      "main": [
+        [
+          {
+            "node": "Edit Fragmenta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Exec → Objeções/Valor": {
+      "main": [
+        [
+          {
+            "node": "Edit Fragmenta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Exec → Nutrição": {
+      "main": [
+        [
+          {
+            "node": "Edit Fragmenta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Input": {
+      "main": [
+        [
+          {
+            "node": "Atualizar data ultima mensagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Demux p/ Exec Agents": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook1": {
+      "main": [
+        [
+          {
+            "node": "Normalize Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "ORCHESTRATOR",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "ORCHESTRATOR",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Exec → Aguardando agendamento",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Exec → Acolhimento",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Exec → Localização",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Exec → Qualificação",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Exec → Objeções/Valor",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Exec → Escalação/Compliance",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Exec → Nutrição",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Exec → Atualização de campos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait6": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ORCHESTRATOR": {
+      "main": [
+        [
+          {
+            "node": "Demux p/ Exec Agents",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fragmenta": {
+      "main": [
+        [
+          {
+            "node": "Split \\n",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split \\n": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Atualizar resposta IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Atualizar resposta IA": {
+      "main": [
+        [
+          {
+            "node": "Enviar mensagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar mensagem": {
+      "main": [
+        [
+          {
+            "node": "Wait6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "ORCHESTRATOR",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Exec → Aguardando agendamento": {
+      "main": [
+        [
+          {
+            "node": "Edit Fragmenta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Exec → Localização": {
+      "main": [
+        [
+          {
+            "node": "Edit Fragmenta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default prompt": {
+      "main": [
+        [
+          {
+            "node": "Status da pipeline",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Exec → Atualização de campos": {
+      "main": [
+        [
+          {
+            "node": "Obter info atualizado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obter info atualizado": {
+      "main": [
+        [
+          {
+            "node": "Lead info atualizado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lead info atualizado": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Info",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Info Atualizada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Info": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Info Atualizada": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "ORCHESTRATOR",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge mensagem e fluxo": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Merge mensagem e fluxo",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Exec → Escalação/Compliance": {
+      "main": [
+        [
+          {
+            "node": "Edit Fragmenta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        []
+      ]
+    },
+    "Obter arquivo": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1dfcb1d4-177d-4bab-895a-7c9bdd03dd64",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "94f618de022ac8dfa10f12ace294d24601c74d50c50d62f1fd99b044d05edc51"
+  },
+  "id": "7k0TnJppcANxFpzU",
+  "tags": []
+}
