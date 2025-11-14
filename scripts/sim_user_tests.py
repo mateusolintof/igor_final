@@ -360,73 +360,167 @@ def _fetch_last_ai_message(
 SCENARIOS = [
     {
         "name": "ambigua_quero_consultar",
-        "system": "Você é um lead humano no WhatsApp. Seja natural, 1–2 frases. Sem emojis. Não diga que é teste. Primeiro contato é ambíguo.",
-        "opener": "Oi, queria consultar com o Dr. Igor",
+        "profile": "inicial_ambigua",
+        "hint": "Primeiro contato ambíguo, não é prontidão real.",
     },
     {
         "name": "preco_no_inicio",
-        "system": "Você pergunta preço logo no início. Se receber resposta, diga algo curto e informe seu objetivo.",
-        "opener": "Quanto custa a consulta?",
+        "profile": "preco_sensivel",
+        "hint": "Pergunta preço logo no início; depois informa objetivo curto.",
     },
     {
         "name": "objeção_preco",
-        "system": "Você tem objeção de preço. Seja cordial, mas hesite no valor e explique rápido seu contexto.",
-        "opener": "R$ 700 meio puxado pra mim...",
+        "profile": "preco_sensivel",
+        "hint": "Expressa objeção de preço de forma cordial.",
     },
     {
         "name": "objetivo_emagrecimento",
-        "system": "Você quer emagrecer rápido para um evento próximo. Fale direto, 1–2 frases.",
-        "opener": "Quero perder peso pra um evento em 3 meses",
+        "profile": "qualificado_rapido",
+        "hint": "Quer emagrecer rápido para um evento em 3 meses.",
     },
     {
         "name": "distancia_online",
-        "system": "Você mora longe e prefere online. Pergunte objetivamente e diga seu objetivo.",
-        "opener": "Moro fora de Feira, dá pra fazer online?",
+        "profile": "online",
+        "hint": "Mora fora de Feira e prefere online.",
     },
     {
         "name": "nutricionista_vs_nutrologo",
-        "system": "Você confunde nutricionista e nutrólogo; peça esclarecimento curto.",
-        "opener": "Nutricionista e nutrólogo é a mesma coisa?",
+        "profile": "duvida_metodo",
+        "hint": "Confunde nutricionista e nutrólogo; pede esclarecimento curto.",
     },
     {
         "name": "agendar_no_inicio",
-        "system": "Você diz que quer agendar logo no começo, mas quer entender antes.",
-        "opener": "Quero agendar uma consulta, mas me explica rapidinho?",
+        "profile": "quer_agendar_mas_quer_entender",
+        "hint": "Diz que quer agendar logo no começo, mas quer entender antes.",
     },
     {
         "name": "metodo",
-        "system": "Você pergunta como funciona o método e diz seu objetivo.",
-        "opener": "Como funciona o método de vocês? Quero definição",
+        "profile": "duvida_metodo",
+        "hint": "Pergunta como funciona o método e cita objetivo de definição.",
     },
     {
         "name": "convenio",
-        "system": "Você pergunta sobre convênio e deixa em aberto interesse.",
-        "opener": "Vocês atendem por convênio?",
+        "profile": "convenio",
+        "hint": "Pergunta sobre convênio e deixa interesse em aberto.",
     },
     {
         "name": "so_pesquisando",
-        "system": "Você está só pesquisando agora. Tom cordial, sem fechar.",
-        "opener": "Tô pesquisando ainda, queria entender como funciona",
+        "profile": "so_pesquisando",
+        "hint": "Diz que está só pesquisando por enquanto.",
     },
 ]
 
 
-def build_user_reply(system_prompt: str, last_agent_msg: str) -> str:
+# -----------------------------
+# Perfis (persona) do "usuário" simulado
+# -----------------------------
+
+PROFILE_PRESETS: Dict[str, Dict[str, Any]] = {
+    "inicial_ambigua": {
+        "traits": ["primeiro contato", "não é prontidão", "curto e cordial"],
+        "facts": {"objetivo": None, "cidade": None, "orcamento": "neutro"},
+    },
+    "preco_sensivel": {
+        "traits": ["sensível a preço", "cordial", "quer entender antes"],
+        "facts": {"objetivo": None, "cidade": None, "orcamento": "apertado"},
+    },
+    "qualificado_rapido": {
+        "traits": ["alta intenção", "contexto rico", "objetivo claro"],
+        "facts": {"objetivo": "emagrecimento", "cidade": "Feira de Santana", "orcamento": "ok"},
+    },
+    "online": {
+        "traits": ["mora longe", "prefere online"],
+        "facts": {"objetivo": None, "cidade": "Salvador", "orcamento": "neutro"},
+    },
+    "duvida_metodo": {
+        "traits": ["quer entender método", "curto e direto"],
+        "facts": {"objetivo": None, "cidade": None, "orcamento": "neutro"},
+    },
+    "quer_agendar_mas_quer_entender": {
+        "traits": ["diz que quer agendar", "ainda quer entender", "não é prontidão automática"],
+        "facts": {"objetivo": None, "cidade": None, "orcamento": "ok"},
+    },
+    "convenio": {
+        "traits": ["pergunta sobre convênio", "interesse aberto"],
+        "facts": {"objetivo": None, "cidade": None, "orcamento": "neutro"},
+    },
+    "so_pesquisando": {
+        "traits": ["baixa intenção", "pesquisando", "cordial"],
+        "facts": {"objetivo": None, "cidade": None, "orcamento": "neutro"},
+    },
+}
+
+
+def _random_name() -> str:
+    first = random.choice(["João", "Maria", "Ana", "Paulo", "Carla", "Rafa", "Bruna", "Thiago", "Luana", "Renato"])  # noqa: E501
+    last = random.choice(["Silva", "Santos", "Costa", "Oliveira", "Pereira", "Almeida"])  # noqa: E501
+    return f"{first} {last}"
+
+
+def build_persona_system_prompt(profile: str, state: Dict[str, Any]) -> str:
+    p = PROFILE_PRESETS.get(profile, PROFILE_PRESETS["inicial_ambigua"])
+    traits = ", ".join(p.get("traits", []))
+    facts = {**p.get("facts", {}), **state}
+    base = (
+        "Você simula um lead humano no WhatsApp em PT-BR. Seja natural, 1–2 frases, "
+        "sem emojis, sem formalismo. Não revele que é teste. Adapte-se ao que o agente diz."
+    )
+    facts_txt = "\n".join(
+        [
+            f"- Nome: {facts.get('nome')}",
+            f"- Objetivo: {facts.get('objetivo')}",
+            f"- Cidade: {facts.get('cidade')}",
+            f"- Orçamento: {facts.get('orcamento')} (não force objeção; só manifeste se fizer sentido)",
+        ]
+    )
+    rules = (
+        "\nRegras principais:\n"
+        "- Se o agente pedir nome/objetivo e você ainda não forneceu, forneça de forma natural.\n"
+        "- Se já forneceu, não repita; avance no assunto.\n"
+        "- Se disser que quer agendar, mas ainda tem dúvidas, peça um resumo curto antes de fechar.\n"
+        "- Evite perguntas em cascata.\n"
+    )
+    return f"Perfil: {traits}\n{base}\n\nSeus dados:\n{facts_txt}{rules}"
+
+
+def build_user_reply(system_prompt: str, last_agent_msg: str, history: List[Dict[str, str]]) -> str:
+    # Compacta o histórico recente (últimos 6 turnos) para dar contexto ao LLM
+    h = history[-6:]
+    hist_txt = []
+    for m in h:
+        role = "Agente" if m["role"] == "assistant" else "Você"
+        hist_txt.append(f"{role}: {m['content']}")
+    history_block = "\n".join(hist_txt)
+
     guidance = (
-        "Responda como um humano em PT-BR, 1–2 frases, sem emojis, sem formalismo. "
-        "Se o agente pediu uma informação (nome/objetivo), forneça naturalmente. "
-        "Se já forneceu, avance no assunto. Não repita palavras à toa."
+        "Responda em 1–2 frases, mantendo coerência com o histórico. "
+        "Forneça dados pedidos (nome/objetivo) se faltarem; caso contrário, avance o assunto."
     )
     user_prompt = (
-        f"Contexto da última mensagem do agente:\n{last_agent_msg}\n\n"
-        f"Diretriz: {guidance}"
+        f"Histórico recente:\n{history_block}\n\n"
+        f"Última mensagem do agente:\n{last_agent_msg}\n\n{guidance}"
     )
     return openai_generate(system_prompt, user_prompt)
+
+
+def _generate_opener(system_prompt: str, hint: str) -> str:
+    prompt = (
+        "Gere a primeira mensagem desse lead conforme o perfil acima. "
+        "Apenas 1–2 frases. Contexto: " + hint
+    )
+    return openai_generate(system_prompt, prompt)
 
 
 def run_conversation(test_idx: int, scenario: Dict[str, str]) -> Dict[str, Any]:
     name = f"Teste {test_idx+1} - {scenario['name']}"
     phone = _rand_phone()
+    persona_state = {
+        "nome": _random_name(),
+        "objetivo": None,
+        "cidade": random.choice([None, "Feira de Santana", "Salvador", "Vitória da Conquista"]),
+        "orcamento": random.choice(["ok", "apertado", "neutro"]),
+    }
+    system_profile = build_persona_system_prompt(scenario.get("profile", "inicial_ambigua"), persona_state)
 
     # 1) Criar contato e lead
     contact_id = kommo_create_contact(name=name, phone=phone)
@@ -438,8 +532,12 @@ def run_conversation(test_idx: int, scenario: Dict[str, str]) -> Dict[str, Any]:
 
     # 2) Enviar mensagem inicial ao Webhook
     history: List[Dict[str, str]] = []
-    n8n_send_message(scenario["opener"], lead_id, contact_id)
-    history.append({"role": "user", "content": scenario["opener"]})
+    try:
+        opener = _generate_opener(system_profile, scenario.get("hint", ""))
+    except Exception:
+        opener = "Oi, gostaria de entender melhor."
+    n8n_send_message(opener, lead_id, contact_id)
+    history.append({"role": "user", "content": opener})
 
     # 3) Aguardar até 180s pela resposta do agente
     start_ts = time.time()
@@ -464,7 +562,7 @@ def run_conversation(test_idx: int, scenario: Dict[str, str]) -> Dict[str, Any]:
 
     # 4) Gerar próxima mensagem do "usuário" via LLM e iterar (máx. 5 turnos)
     for _ in range(4):
-        user_reply = build_user_reply(scenario["system"], ai_msg)
+        user_reply = build_user_reply(system_profile, ai_msg, history)
         if not user_reply:
             break
         n8n_send_message(user_reply, lead_id, contact_id)
@@ -518,4 +616,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
