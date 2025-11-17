@@ -1,0 +1,404 @@
+{
+    "name": "IGOR_02.2_AGENDAMENTO",
+    "nodes": [
+      {
+        "parameters": {
+          "respondWith": "allIncomingItems",
+          "options": {}
+        },
+        "id": "d0f6a3a5-8a85-4238-a3ac-8902d8bfa04f",
+        "name": "Return",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1,
+        "position": [
+          688,
+          176
+        ]
+      },
+      {
+        "parameters": {
+          "inputSource": "passthrough"
+        },
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          -928,
+          160
+        ],
+        "id": "92e68c96-3fa3-4e25-90b6-bcdd29199f2d",
+        "name": "When Executed by Another Workflow"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "72b4e3bd-dda1-49bd-bc5a-4ce55d4733a0",
+                "leftValue": "={{ $('When Executed by Another Workflow').item.json.status_id }}",
+                "rightValue": "={{ $('When Executed by Another Workflow').item.json[\"QUALIFICADO\"] }}",
+                "operator": {
+                  "type": "number",
+                  "operation": "equals"
+                }
+              },
+              {
+                "id": "3ea2e56a-3872-4601-9728-66fd7bd14dfc",
+                "leftValue": "={{ $('When Executed by Another Workflow').item.json.status_id }}",
+                "rightValue": "={{ $('When Executed by Another Workflow').item.json[\"ATENDIMENTO IA\"] }}",
+                "operator": {
+                  "type": "number",
+                  "operation": "equals"
+                }
+              }
+            ],
+            "combinator": "or"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          -400,
+          160
+        ],
+        "id": "3fdcbf3b-45a7-4d4a-98b8-703e25966b3b",
+        "name": "Checar Qualificado ou Atendimento IA"
+      },
+      {
+        "parameters": {
+          "method": "PATCH",
+          "url": "={{ $('When Executed by Another Workflow').item.json.link }}/api/v4/leads/{{ $('When Executed by Another Workflow').item.json.lead_id }}",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Authorization",
+                "value": "={{ $('When Executed by Another Workflow').item.json.authorization }}"
+              },
+              {
+                "name": "accept",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"status_id\": {{ $('When Executed by Another Workflow').item.json[\"AGUARDANDO AGENDAMENTO\"] }}\n}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          -224,
+          80
+        ],
+        "id": "b6ce5d24-98ce-48d9-85ae-56917ec06418",
+        "name": "Alterar Status AGUARDANDO AGENDAMENTO",
+        "alwaysOutputData": false,
+        "retryOnFail": true
+      },
+      {
+        "parameters": {
+          "method": "PATCH",
+          "url": "={{ $('When Executed by Another Workflow').item.json.link }}/api/v4/leads/{{ $('When Executed by Another Workflow').item.json.lead_id }}",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Authorization",
+                "value": "={{ $('When Executed by Another Workflow').item.json.authorization }}"
+              },
+              {
+                "name": "accept",
+                "value": "application/json"
+              }
+            ]
+          },
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\n  \"status_id\": {{ $('JSON Status').item.json[\"ESCALADO\"] }},\n  \"pipeline_id\": {{ $('When Executed by Another Workflow').item.json.pipeline_atendimento_humano }}\n}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          288,
+          176
+        ],
+        "id": "2ac18ae9-8c56-40a8-b2cc-219e5b212923",
+        "name": "Alterar Status e Pipeline",
+        "alwaysOutputData": false,
+        "retryOnFail": true
+      },
+      {
+        "parameters": {
+          "url": "={{ $json.link }}/api/v4/leads/pipelines/{{ $json.pipeline_atendimento_humano }}",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Authorization",
+                "value": "={{ $json.authorization }}"
+              },
+              {
+                "name": "accept",
+                "value": "application/json"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          -752,
+          160
+        ],
+        "id": "966dd7a3-c22e-4e0a-a8dc-f46f7aa5fc1d",
+        "name": "Status da pipeline",
+        "alwaysOutputData": false,
+        "retryOnFail": true
+      },
+      {
+        "parameters": {
+          "jsCode": "const pipelineInfo = JSON.parse($input.first().json.data);\n\nconst statuses = pipelineInfo[\"_embedded\"][\"statuses\"];\n\nconst statusMap = {};\n\nfor (var i = 1; i < statuses.length; i++) {\n  statusMap[statuses[i].name] = statuses[i].id;\n}\n  \nreturn {\n  json: statusMap\n};"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -576,
+          160
+        ],
+        "id": "4525dbcc-2e7d-447a-bf72-86214ca74ea7",
+        "name": "JSON Status"
+      },
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "={{ $('When Executed by Another Workflow').item.json.message }}",
+          "options": {
+            "systemMessage": "={{ $('When Executed by Another Workflow').item.json.default_prompt }}\n\n## FLUXO DE TRABALHO E AÇÕES – AGENTE AGUARDANDO AGENDAMENTO\n\nVocê é o **Agente - Aguardando agendamento**.  \n\nSeu papel é avisar, de forma simples e humana, que a partir daqui quem continua é a equipe humana para combinar dia e horário da consulta.  \nVocê **não** marca horários, **não** volta para qualificação e **não** faz novas perguntas além do necessário para sinalizar essa passagem.\n\n---\n\n### 1. Quando atuar\n\n- O Orquestrador só te chama quando o lead já demonstrou que quer seguir para o agendamento.\n- Considere que a pessoa já passou pelas etapas de acolhimento e qualificação.\n\n---\n\n### 2. Como responder\n\nPrincípios:\n\n- Mensagens curtas (1–2 frases).\n- Tom de WhatsApp: natural, direto, sem formalismos e sem emojis.\n- Não fazer novas perguntas de qualificação (objetivo, condições, etc.).\n- Apenas deixar claro que a equipe humana vai assumir **aqui mesmo pelo WhatsApp** para combinar o horário.\n\nExemplos de resposta (varie conforme o contexto e evite repetir sempre a mesma):\n\n- \"Perfeito. Vou te passar agora pra equipe que combina direitinho o melhor horário com você aqui pelo WhatsApp.\"\n- \"Ótimo, vou encaminhar sua conversa pro pessoal do agendamento. Eles te chamam aqui pra alinhar o dia e o horário certinho.\"\n- \"Legal. A partir daqui a equipe de agendamento continua com você pra combinar o melhor horário da consulta.\"\n- \"Fechado. Vou te conectar com a equipe que cuida da agenda do Dr. Igor, e eles te passam as opções de dia e horário por aqui.\"\n\nSe fizer sentido pelo contexto, você pode adicionar **uma** frase curta de reforço de valor, sem exagero. Exemplos:\n\n- \"Assim eles já olham certinho a agenda do Dr. Igor e te encaixam no melhor horário.\"\n- \"Desse jeito fica mais fácil encontrar um horário que funcione bem pra você.\"\n\nEvite:\n\n- Explicações longas sobre processo interno.\n- Frases vagas como “em breve entraremos em contato” sem deixar claro que será por aqui mesmo.\n- Ficar insistindo ou pressionando o paciente; aqui ele já decidiu seguir.\n\n---\n\n### 3. O que você NÃO faz\n\n- Não pergunta novamente nome ou objetivo.\n- Não discute valor, formas de pagamento ou objeções (isso já foi tratado por outros agentes).\n- Não tenta remarcar ou requalificar o lead.\n- Não promete horário exato, apenas informa que a equipe vai combinar com ele.\n\nSua função é **encerrar sua parte da conversa com clareza** e sinalizar a passagem para a equipe humana de agendamento, mantendo a sensação de fluidez e cuidado."
+          }
+        },
+        "type": "@n8n/n8n-nodes-langchain.agent",
+        "typeVersion": 2.2,
+        "position": [
+          -16,
+          176
+        ],
+        "id": "62363a5f-08d8-497b-b413-f9d47b9b07fc",
+        "name": "AI Agent"
+      },
+      {
+        "parameters": {
+          "model": {
+            "__rl": true,
+            "value": "gpt-4.1-mini",
+            "mode": "list",
+            "cachedResultName": "gpt-4.1-mini"
+          },
+          "options": {
+            "frequencyPenalty": 0.2,
+            "maxTokens": 250,
+            "presencePenalty": 0.1,
+            "temperature": 0.35,
+            "topP": 0.9
+          }
+        },
+        "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+        "typeVersion": 1.2,
+        "position": [
+          -16,
+          336
+        ],
+        "id": "5b5c7e09-ad3c-40e7-88b8-1e64ba45bb1a",
+        "name": "OpenAI Chat Model",
+        "credentials": {
+          "openAiApi": {
+            "id": "AvFnQeMq6aXNioVd",
+            "name": "OpenAI Instituto Aguiar Neri"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "sessionIdType": "customKey",
+          "sessionKey": "={{ $('When Executed by Another Workflow').item.json.lead_id }}",
+          "contextWindowLength": 100
+        },
+        "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+        "typeVersion": 1.3,
+        "position": [
+          80,
+          400
+        ],
+        "id": "2cc957cf-aac6-47c6-83d3-c9a40f549ad8",
+        "name": "Postgres Chat Memory",
+        "credentials": {
+          "postgres": {
+            "id": "rONPTDNEAexjUpqM",
+            "name": "Postgres Instituto Aguiar Neri"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "0f438572-b2dc-49cd-a681-18e264351f02",
+                "name": "output",
+                "value": "={{ $('AI Agent').item.json.output }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          496,
+          176
+        ],
+        "id": "96f4e29d-315f-4f87-9d50-3604c4ceff09",
+        "name": "Edit Fields"
+      }
+    ],
+    "pinData": {},
+    "connections": {
+      "When Executed by Another Workflow": {
+        "main": [
+          [
+            {
+              "node": "Status da pipeline",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Checar Qualificado ou Atendimento IA": {
+        "main": [
+          [
+            {
+              "node": "Alterar Status AGUARDANDO AGENDAMENTO",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "AI Agent",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Alterar Status AGUARDANDO AGENDAMENTO": {
+        "main": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Alterar Status e Pipeline": {
+        "main": [
+          [
+            {
+              "node": "Edit Fields",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Status da pipeline": {
+        "main": [
+          [
+            {
+              "node": "JSON Status",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "JSON Status": {
+        "main": [
+          [
+            {
+              "node": "Checar Qualificado ou Atendimento IA",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "AI Agent": {
+        "main": [
+          [
+            {
+              "node": "Alterar Status e Pipeline",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "OpenAI Chat Model": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Postgres Chat Memory": {
+        "ai_memory": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_memory",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Edit Fields": {
+        "main": [
+          [
+            {
+              "node": "Return",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "active": false,
+    "settings": {
+      "executionOrder": "v1"
+    },
+    "versionId": "a107e00e-0eb5-4f6d-8ed1-f9bf48363dd7",
+    "meta": {
+      "instanceId": "94f618de022ac8dfa10f12ace294d24601c74d50c50d62f1fd99b044d05edc51"
+    },
+    "id": "vZ1whzq1g1tcjKYe",
+    "tags": []
+  }
