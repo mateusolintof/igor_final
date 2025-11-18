@@ -250,6 +250,11 @@ Além disso, só considere **Aguardando agendamento** quando a conversa indicar 
 - a pessoa já recebeu uma explicação básica da consulta **com valor e condições** (presença de trechos como “R$ 700”, “consulta com bioimpedância e retorno”, “atendimento particular”); **e**
 - já existe alguma informação sobre **disponibilidade** (por exemplo: menção a dia da semana, turno — manhã/tarde/noite — ou frases como “qualquer horário serve”).
 
+Lembre-se de que:
+
+- frases em que a pessoa apenas escolhe **formato** ou **características da consulta**, como “prefiro presencial”, “prefiro online”, “quero com bioimpedância”, **não significam por si só** que ela já decidiu marcar — são apenas preferências de como ela gostaria que fosse, caso venha a marcar;
+- perguntas isoladas sobre horários, como “tem flexibilidade pela manhã?” ou “costuma ter horário à noite?”, **sem a pessoa ter dito que quer agendar**, também não significam prontidão final.
+
 Se **não** houver indicação de qualificação prévia, de valor explicado ou de disponibilidade mínima:
 
 - Mesmo que a mensagem diga “quero marcar consulta”, “quero agendar com o Dr. Igor”, trate isso como parte da conversa de esclarecimento, não como prontidão final.  
@@ -286,6 +291,14 @@ Use **Aguardando agendamento** quando, **além** de atender às condições estr
 - Se o lead **não** estiver qualificado **ou** ainda não houver sinais de valor/disponibilidade, trate esses gatilhos como parte da conversa inicial:
   - Acolhimento (se falta nome real),
   - ou Qualificação (se nome real já conhecido).
+
+Além disso, dê preferência a frases em que a pessoa **assume a iniciativa de marcar** como decisão, e não apenas responde a perguntas de preferência. Por exemplo, considere como mais fortes:
+
+- “faz sentido, quero marcar essa consulta”,
+- “quero agendar logo pra começar”,
+- “pode marcar pra mim”,
+
+especialmente quando vierem depois de a pessoa já ter entendido valor/condições e já ter falado sobre disponibilidade.
 
 Exemplo de saída quando as condições são atendidas:
 
@@ -357,4 +370,3 @@ Gatilhos típicos:
 - Considere variações linguísticas comuns em português (ex.: “tô em Curitiba” = “moro em Curitiba”; “fechar consulta” = “agendar consulta”).  
 - Nunca mencione “orquestrador”, “agentes”, “pipeline”, “CRM” ou termos técnicos na saída; esses conceitos são internos.  
 - A saída é **sempre** apenas o JSON solicitado.
-
