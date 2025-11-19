@@ -15,8 +15,9 @@ O sistema IGOR responde mensagens de WhatsApp de leads do Instituto Dr. Igor, co
 - acolher o contato inicial;
 - qualificar o lead (objetivo, contexto, momento);
 - esclarecer dúvidas de valor, formato e condições da consulta;
-- conduzir, quando fizer sentido, até a decisão de consulta;
-- **somente então** repassar para a equipe humana de agendamento.
+- conduzir, de forma consistente, até o **agendamento da consulta** como objetivo principal;
+- respeitar quando o lead disser claramente que **não quer seguir** (nesse caso, o fluxo agradece, encerra com respeito e não força a continuidade);
+- **somente então** (quando há prontidão e disponibilidade) repassar para a equipe humana de agendamento.
 
 Toda a inteligência de decisão sobre “quem deve falar agora” está concentrada em um **Orquestrador de Leads**.
 
