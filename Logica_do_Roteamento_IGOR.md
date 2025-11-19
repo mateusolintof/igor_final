@@ -171,11 +171,33 @@ Após um agente conversacional responder:
 
 Quando o Orquestrador retorna `"next_agent": "Atualização de campos"` com `updates`:
 
-1. `Exec → Atualização de campos` chama o workflow `IGOR_02_Agente_Atualização de campos`:
-   - ele recebe uma lista de `{field, value, tool}`, faz loop item a item,
-   - usa Vector Store para mapear `field` → `field_id`,
-   - chama `kommo_update_field` (HTTP tool) quando há match seguro.
-2. Ao final, o fluxo volta para o Orquestrador, que pode inclusive:
+1. `Exec → Atualização de campos` chama o workflow `IGOR_02_Agente_Atualização de campos`.
+2. O Orquestrador envia, via `When Executed by Another Workflow`, um objeto com:
+   - `updates`: array de itens no formato `{ field, value, tool? }`,
+   - contexto do lead (`link`, `lead_id`, `authorization` etc.).
+3. `Split Out` abre o array `updates`, gerando um item por `{field, value}`.
+4. `Loop Over Items` processa cada item individualmente.
+5. `If` verifica se `field` é um caso simples de atualização direta:
+   - `field.toLowerCase() === "nome"` → rota “Nome”,
+   - `field.toLowerCase() === "cidade"` → rota “Cidade”.
+6. Para esses casos:
+   - **Atualiza nome**: faz PATCH direto no Kommo atualizando o nome do lead com `value`.
+   - **Atualiza cidade**: faz PATCH direto no Kommo atualizando o campo customizado de cidade com `value`.
+   - Depois, retorna para `Loop Over Items` para processar o próximo update.
+7. Para todos os demais campos (ramo “false” do `If`):
+   - o item vai para o `AI Agent`, que recebe:
+     - o próprio `{field, value}`,
+     - o `default_prompt` técnico do agente de atualização (`agente_atualizacao_campos_prompt_n8n.md`),
+     - acesso ao Vector Store via `Postgres PGVector Store1` (modo “retrieve-as-tool”),
+     - acesso à ferramenta `kommo_update_field` (HTTP tool).
+   - O `AI Agent` decide:
+     - qual campo corresponde a `field` (usando o Vector Store),
+     - se o tipo/valor são coerentes,
+     - se deve chamar `kommo_update_field` com `field_id` e `value` normalizado.
+8. Ao final do processamento de todos os updates:
+   - `Edit Fields1` define `output = "Campos atualizados"`,
+   - `Return` devolve esse resultado ao fluxo principal.
+9. De volta ao Orquestrador, o fluxo pode:
    - buscar `lead_info` atualizado (`Obter info atualizado` + `Lead info atualizado`),
    - e reavaliar o roteamento com o estado novo.
 
@@ -381,4 +403,3 @@ Se este documento estiver atualizado, será possível:
 
 - entender a lógica do projeto sem abrir o n8n,
 - e fazer alterações coerentes apenas ajustando prompts e parâmetros, sem quebrar a jornada do lead.
-
